@@ -2,6 +2,8 @@
 Helpers for working with google cloud and go
 
 #### BigQuery
+*query from bigquery using go*
+
 - Query
 - Build Select
 - Build From
