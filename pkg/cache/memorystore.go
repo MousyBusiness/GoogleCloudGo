@@ -5,10 +5,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/mousybusiness/googlecloudgo/pkg/bq"
 	redispb "google.golang.org/genproto/googleapis/cloud/redis/v1beta1"
 	"log"
 	"os"
-	"shared/bq"
 	"strings"
 )
 
