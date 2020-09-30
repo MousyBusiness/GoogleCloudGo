@@ -18,7 +18,7 @@ const (
 )
 
 // Gin middleware for JWT auth
-func JWTAuth(client *auth.Client) gin.HandlerFunc {
+func AuthJWT(client *auth.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		startTime := time.Now()
 
