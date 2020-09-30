@@ -97,6 +97,17 @@ func ValidateMemoryStoreAndCreatePool() {
 	}
 }
 
+// continuously check if memory store is available if not currently working
+// this is incase instances stay live for extended periods while the cache is being created
+func PeriodicallyPollForCache() {
+	go func() {
+		for {
+			time.Sleep(time.Second * 30)
+			ValidateMemoryStoreAndCreatePool()
+		}
+	}()
+}
+
 // create redis connection pools
 func NewPool(addr string) *redis.Pool {
 	return &redis.Pool{
