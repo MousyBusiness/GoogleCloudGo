@@ -60,7 +60,7 @@ func CreateCacheInstance() error {
 }
 
 // deletes the Memorystore Redis instance
-func DeleteCacheIstance() error {
+func DeleteCacheInstance() error {
 	ctx := context.Background()
 	client, err := redisman.NewCloudRedisClient(ctx)
 	if err != nil {
