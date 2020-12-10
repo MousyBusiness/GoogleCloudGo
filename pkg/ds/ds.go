@@ -71,7 +71,7 @@ func (client Client) Delete(ctx context.Context, kind string, id int64) error {
 func (client Client) QGet(ctx context.Context, kind string, property string, value string, entity Entity) error {
 	query := datastore.NewQuery(kind).Filter(fmt.Sprintf("%s =", property), value)
 	it := client.ds.Run(ctx, query)
-	_, err := it.Next(&entity)
+	_, err := it.Next(entity)
 	if err != nil {
 		return err
 	}
