@@ -1,10 +1,9 @@
-package fbauth
+package auth
 
 import (
-	"firebase.google.com/go/auth"
+	fbauth "firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/mousybusiness/googlecloudgo/pkg/secrets"
-	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
 	"strings"
@@ -18,49 +17,56 @@ const (
 )
 
 // Gin middleware for JWT auth
-func AuthJWT(client *auth.Client) gin.HandlerFunc {
+func AuthJWT(client *fbauth.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		startTime := time.Now()
 
 		authHeader := c.Request.Header.Get(authorizationHeader)
-		log.Println("----->", authHeader)
+		log.Println("authHeader", authHeader)
 		token := strings.Replace(authHeader, "Bearer ", "", 1)
 		idToken, err := client.VerifyIDToken(c, token) // usually hits a local cache
-
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"status":  http.StatusUnauthorized,
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"code":    http.StatusUnauthorized,
 				"message": http.StatusText(http.StatusUnauthorized),
 			})
-
 			return
 		}
 
-		log.Println(">>>AUTH TIME>>>", time.Since(startTime))
+		log.Println("Auth time:", time.Since(startTime))
 
 		c.Set(valName, idToken)
 		c.Next()
 	}
 }
 
-// Gin middleware for API key augth
-func APIKeyAuth(secretId string) gin.HandlerFunc {
+// API key auth middleware
+func AuthAPIKey(secretId string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		key := c.Request.Header.Get(apiKeyHeader)
 
 		secret, err := secrets.GetSecret(secretId)
 		if err != nil {
-			log.Println("error while getting secret")
-			_ = c.Error(status.Error(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized)))
+			log.Println("failed to get secret")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"code":    http.StatusUnauthorized,
+				"message": http.StatusText(http.StatusUnauthorized),
+			})
 			return
 		}
+
+		log.Println("comparing secret with provided key", secret, key)
 
 		if secret != key {
 			log.Println("key doesnt match!")
-			_ = c.Error(status.Error(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized)))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"code":    http.StatusUnauthorized,
+				"message": http.StatusText(http.StatusUnauthorized),
+			})
 			return
 		}
 
+		log.Println("no error during check")
 		c.Next()
 	}
 }
@@ -71,8 +77,11 @@ func AuthAppEngineCron() gin.HandlerFunc {
 		cron := c.Request.Header.Get(cronExecutedHeader)
 
 		if cron != "true" {
-			log.Println("Not called from cron - do not allow access")
-			_ = c.Error(status.Error(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized)))
+			log.Println("not invoked by cron - access denied")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"code":    http.StatusUnauthorized,
+				"message": http.StatusText(http.StatusUnauthorized),
+			})
 			return
 		}
 

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mousybusiness/googlecloudgo/pkg/bq"
+	errs "github.com/pkg/errors"
 	redispb "google.golang.org/genproto/googleapis/cloud/redis/v1beta1"
 	"log"
 	"os"
@@ -44,14 +45,12 @@ func CreateCacheInstance() error {
 		Instance:   &template,
 	})
 	if err != nil {
-		log.Println("error while trying to create cache", err)
-		return err
+		return errs.Wrap(err, "error while trying to create cache")
 	}
 
 	instance, err := cio.Wait(ctx)
 	if err != nil {
-		log.Println("error while waiting for create", err)
-		return err
+		return errs.Wrap(err, "error while waiting for create")
 	}
 
 	log.Println("REDIS", instance.GetHost())
@@ -74,13 +73,11 @@ func DeleteCacheInstance() error {
 	})
 
 	if err != nil {
-		log.Println("error while trying to delete cache:", err)
-		return err
+		return errs.Wrap(err, "error while trying to delete cache")
 	}
 
 	if err := dio.Wait(ctx); err != nil {
-		log.Println("error while waiting for delete:", err)
-		return err
+		return errs.Wrap(err, "error while waiting for delete")
 	}
 
 	return nil
@@ -125,13 +122,11 @@ func PreloadCache(keyColumn int) error {
 
 	rows, err := bq.QueryBQ(bq.BuildQuery(bq.DefaultFrom(), nil, ""))
 	if err != nil {
-		log.Println("error while querying BQ", err)
-		return err
+		return errs.Wrap(err, "error while querying BQ")
 	}
 
 	if err := putInCache(keyColumn, rows); err != nil {
-		log.Println("Putting in cache failed", err)
-		return err
+		return errs.Wrap(err, "Putting in cache failed")
 	}
 
 	return nil

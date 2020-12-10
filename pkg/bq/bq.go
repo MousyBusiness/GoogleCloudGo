@@ -3,6 +3,7 @@ package bq
 import (
 	"cloud.google.com/go/bigquery"
 	"context"
+	errs "github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 	"log"
 	"os"
@@ -29,8 +30,7 @@ func QueryBQ(query string) ([]string, error) {
 	ctx := context.Background()
 	client, err := bigquery.NewClient(ctx, dataProjectId)
 	if err != nil {
-		log.Println("error fetching from BQ", err)
-		return nil, err
+		return nil, errs.Wrap(err, "error fetching from BQ")
 	}
 
 	// perform query
@@ -39,8 +39,7 @@ func QueryBQ(query string) ([]string, error) {
 	// read data
 	it, err := q.Read(ctx)
 	if err != nil {
-		log.Println("error reading BQ dataset", err)
-		return nil, err
+		return nil, errs.Wrap(err, "error reading BQ dataset")
 	}
 
 	var rows [][]bigquery.Value

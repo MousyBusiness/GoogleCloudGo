@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	errs "github.com/pkg/errors"
 	"log"
 	"time"
 )
@@ -72,9 +73,8 @@ func IncrementCounter(key string) (int, error) {
 
 	counter, err := redis.Int(redis.DoWithTimeout(conn, time.Millisecond*50, "INCR", key))
 	if err != nil {
-		log.Println("error while doing with timeout", err)
 		cacheFailed = true
-		return -1, err
+		return -1, errs.Wrap(err, "error while doing with timeout")
 	}
 
 	return counter, nil
