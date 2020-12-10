@@ -26,6 +26,10 @@ var (
 // load firebase configuration and create the auth client
 // expecting env variable FIREBASE_CONFIG_FILE
 func InitAuth() (*fbauth.Client, error) {
+	if firebaseConfigFile == "" {
+		return nil, errors.New("FIREBASE_CONFIG_FILE required")
+	}
+
 	opt := option.WithCredentialsFile(firebaseConfigFile)
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
