@@ -3,6 +3,7 @@ package ds
 import (
 	"cloud.google.com/go/datastore"
 	"context"
+	"fmt"
 	"github.com/pkg/errors"
 	"log"
 	"os"
@@ -15,7 +16,7 @@ type DatastoreClient interface {
 }
 
 type Client struct {
-	ds   *datastore.Client
+	ds *datastore.Client
 }
 
 // value must be a pointer to a struct
@@ -63,5 +64,15 @@ func (client Client) Delete(ctx context.Context, kind string, id int64) error {
 		return errors.Wrap(err, "failed to delete datastore entity")
 	}
 
+	return nil
+}
+
+func (client Client) QGet(ctx context.Context, kind string, property string, value string, entity Entity) error {
+	query := datastore.NewQuery(kind).Filter(fmt.Sprintf("%s =", property), value)
+	it := client.ds.Run(ctx, query)
+	_, err := it.Next(&entity)
+	if err != nil {
+		return err
+	}
 	return nil
 }
