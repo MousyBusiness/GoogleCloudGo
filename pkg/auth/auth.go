@@ -22,7 +22,6 @@ func AuthJWT(client *fbauth.Client) gin.HandlerFunc {
 		startTime := time.Now()
 
 		authHeader := c.Request.Header.Get(authorizationHeader)
-		log.Println("authHeader", authHeader)
 		token := strings.Replace(authHeader, "Bearer ", "", 1)
 		idToken, err := client.VerifyIDToken(c, token) // usually hits a local cache
 		if err != nil {
