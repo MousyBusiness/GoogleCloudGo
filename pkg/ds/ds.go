@@ -15,16 +15,16 @@ type DatastoreClient interface {
 }
 
 type Client struct {
-	kind string
 	ds   *datastore.Client
 }
 
 // value must be a pointer to a struct
 type Entity interface {
+	GetKind() string
 	GetValue() interface{}
 }
 
-func ConnectToDatastore(ctx context.Context, kind string) (DatastoreClient, error) {
+func ConnectToDatastore(ctx context.Context) (DatastoreClient, error) {
 	projectID := os.Getenv("GOOGLE_CLOUD_PROJECT") // environment variable provided by app engine
 
 	// Creates a client.
@@ -34,11 +34,11 @@ func ConnectToDatastore(ctx context.Context, kind string) (DatastoreClient, erro
 	}
 
 	log.Println("datastore client created")
-	return Client{kind: kind, ds: c}, nil
+	return Client{ds: c}, nil
 }
 
 func (client Client) Create(ctx context.Context, entity Entity) (*datastore.Key, error) {
-	key := datastore.IncompleteKey(client.kind, nil)
+	key := datastore.IncompleteKey(entity.GetKind(), nil)
 	key, err := client.ds.Put(ctx, key, entity.GetValue())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create datastore entity")
@@ -47,7 +47,7 @@ func (client Client) Create(ctx context.Context, entity Entity) (*datastore.Key,
 }
 
 func (client Client) Get(ctx context.Context, id int64, entity Entity) error {
-	taskKey := datastore.IDKey(client.kind, id, nil)
+	taskKey := datastore.IDKey(entity.GetKind(), id, nil)
 	err := client.ds.Get(ctx, taskKey, entity)
 	if err != nil {
 		return errors.Wrap(err, "failed to get datastore entity")
@@ -57,7 +57,7 @@ func (client Client) Get(ctx context.Context, id int64, entity Entity) error {
 }
 
 func (client Client) Delete(ctx context.Context, kind string, id int64) error {
-	key := datastore.IDKey(client.kind, id, nil)
+	key := datastore.IDKey(kind, id, nil)
 	err := client.ds.Delete(ctx, key)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete datastore entity")
