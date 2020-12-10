@@ -13,7 +13,7 @@ type DatastoreClient interface {
 	Create(ctx context.Context, entity Entity) (*datastore.Key, error)
 	Get(ctx context.Context, id int64, entity Entity) error
 	Delete(ctx context.Context, kind string, id int64) error
-	QGet(ctx context.Context, kind string, property string, value string, entity Entity) error
+	QGet(ctx context.Context, kind string, property string, value string, entity Entity) (*datastore.Key, error)
 }
 
 type Client struct {
