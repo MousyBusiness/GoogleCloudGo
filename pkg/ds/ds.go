@@ -68,12 +68,12 @@ func (client Client) Delete(ctx context.Context, kind string, id int64) error {
 	return nil
 }
 
-func (client Client) QGet(ctx context.Context, kind string, property string, value string, entity Entity) error {
+func (client Client) QGet(ctx context.Context, kind string, property string, value string, entity Entity) (*datastore.Key, error) {
 	query := datastore.NewQuery(kind).Filter(fmt.Sprintf("%s =", property), value)
 	it := client.ds.Run(ctx, query)
-	_, err := it.Next(entity)
+	key, err := it.Next(entity)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return key, nil
 }
