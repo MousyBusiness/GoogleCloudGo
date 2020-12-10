@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	valName = "FIREBASE_ID_TOKEN"
+	FirebaseContextVal = "FIREBASE_ID_TOKEN"
 )
 
 var (
@@ -65,7 +65,7 @@ func VerifyToken(c *gin.Context, client *fbauth.Client) (int, string, error) {
 }
 
 func ExtractClaims(c *gin.Context) (*fbauth.Token, error) {
-	idToken, ok := c.Get(valName)
+	idToken, ok := c.Get(FirebaseContextVal)
 	if !ok {
 		return nil, errors.New("Failed to extract claims")
 	}

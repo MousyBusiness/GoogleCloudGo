@@ -35,7 +35,7 @@ func AuthJWT(client *fbauth.Client) gin.HandlerFunc {
 
 		log.Println("Auth time:", time.Since(startTime))
 
-		c.Set(valName, idToken)
+		c.Set(FirebaseContextVal, idToken)
 		c.Next()
 	}
 }
