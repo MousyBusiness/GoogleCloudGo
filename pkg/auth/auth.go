@@ -87,3 +87,19 @@ func AuthAppEngineCron() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// only allow internal ip ranges
+func AuthInternalOnly() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ip := c.ClientIP()
+		if ! strings.HasPrefix(ip, "127.") || ! strings.HasPrefix(ip, "172.") || ! strings.HasPrefix(ip, "192.168") {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"code":    http.StatusUnauthorized,
+				"message": "tisk tisk tisk",
+			})
+			return
+		}
+
+		c.Next()
+	}
+}
