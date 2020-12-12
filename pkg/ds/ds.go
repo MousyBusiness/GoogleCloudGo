@@ -49,8 +49,8 @@ func (client Client) Create(ctx context.Context, entity Entity) (*datastore.Key,
 }
 
 func (client Client) Get(ctx context.Context, id int64, entity Entity) error {
-	taskKey := datastore.IDKey(entity.GetKind(), id, nil)
-	err := client.ds.Get(ctx, taskKey, entity)
+	key := datastore.IDKey(entity.GetKind(), id, nil)
+	err := client.ds.Get(ctx, key, entity)
 	if err != nil {
 		return errors.Wrap(err, "failed to get datastore entity")
 	}
@@ -63,6 +63,35 @@ func (client Client) Delete(ctx context.Context, kind string, id int64) error {
 	err := client.ds.Delete(ctx, key)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete datastore entity")
+	}
+
+	return nil
+}
+
+func (client Client) CreateNamed(ctx context.Context, name string, entity Entity) (*datastore.Key, error) {
+	key := datastore.NameKey(entity.GetKind(), name, nil)
+	key, err := client.ds.Put(ctx, key, entity.GetValue())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create named datastore entity")
+	}
+	return key, nil
+}
+
+func (client Client) GetNamed(ctx context.Context, name string, entity Entity) error {
+	key := datastore.NameKey(entity.GetKind(), name, nil)
+	err := client.ds.Get(ctx, key, entity)
+	if err != nil {
+		return errors.Wrap(err, "failed to get named datastore entity")
+	}
+
+	return nil
+}
+
+func (client Client) DeleteNamed(ctx context.Context, kind string, name string) error {
+	key := datastore.NameKey(kind, name, nil)
+	err := client.ds.Delete(ctx, key)
+	if err != nil {
+		return errors.Wrap(err, "failed to delete named datastore entity")
 	}
 
 	return nil
