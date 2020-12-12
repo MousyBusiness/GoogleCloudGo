@@ -13,6 +13,9 @@ type DatastoreClient interface {
 	Create(ctx context.Context, entity Entity) (*datastore.Key, error)
 	Get(ctx context.Context, id int64, entity Entity) error
 	Delete(ctx context.Context, kind string, id int64) error
+	CreateNamed(ctx context.Context, name string, entity Entity) (*datastore.Key, error)
+	GetNamed(ctx context.Context, name string, entity Entity) error
+	DeleteNamed(ctx context.Context, kind string, name string) error
 	QGet(ctx context.Context, kind string, property string, value string, entity Entity) (*datastore.Key, error)
 }
 
