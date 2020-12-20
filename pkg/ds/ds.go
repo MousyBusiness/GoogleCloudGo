@@ -10,10 +10,10 @@ import (
 )
 
 type DatastoreClient interface {
-	Create(ctx context.Context, entity Entity) (*datastore.Key, error)
+	Create(ctx context.Context, parent *datastore.Key, entity Entity) (*datastore.Key, error)
 	Get(ctx context.Context, id int64, entity Entity) error
 	Delete(ctx context.Context, kind string, id int64) error
-	CreateNamed(ctx context.Context, name string, entity Entity) (*datastore.Key, error)
+	CreateNamed(ctx context.Context, name string, parent *datastore.Key, entity Entity) (*datastore.Key, error)
 	GetNamed(ctx context.Context, name string, entity Entity) error
 	DeleteNamed(ctx context.Context, kind string, name string) error
 	QGet(ctx context.Context, kind string, property string, value string, entity Entity) (*datastore.Key, error)
@@ -42,8 +42,8 @@ func ConnectToDatastore(ctx context.Context) (DatastoreClient, error) {
 	return Client{ds: c}, nil
 }
 
-func (client Client) Create(ctx context.Context, entity Entity) (*datastore.Key, error) {
-	key := datastore.IncompleteKey(entity.GetKind(), nil)
+func (client Client) Create(ctx context.Context, parent *datastore.Key, entity Entity) (*datastore.Key, error) {
+	key := datastore.IncompleteKey(entity.GetKind(), parent)
 	key, err := client.ds.Put(ctx, key, entity.GetValue())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create datastore entity")
@@ -71,8 +71,8 @@ func (client Client) Delete(ctx context.Context, kind string, id int64) error {
 	return nil
 }
 
-func (client Client) CreateNamed(ctx context.Context, name string, entity Entity) (*datastore.Key, error) {
-	key := datastore.NameKey(entity.GetKind(), name, nil)
+func (client Client) CreateNamed(ctx context.Context, name string, parent *datastore.Key, entity Entity) (*datastore.Key, error) {
+	key := datastore.NameKey(entity.GetKind(), name, parent)
 	key, err := client.ds.Put(ctx, key, entity.GetValue())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create named datastore entity")
