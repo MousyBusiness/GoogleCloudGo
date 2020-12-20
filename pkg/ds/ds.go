@@ -11,11 +11,11 @@ import (
 
 type DatastoreClient interface {
 	Create(ctx context.Context, parent *datastore.Key, entity Entity) (*datastore.Key, error)
-	Get(ctx context.Context, id int64, entity Entity) error
-	Delete(ctx context.Context, kind string, id int64) error
+	Get(ctx context.Context, id int64, parent *datastore.Key, entity Entity) error
+	Delete(ctx context.Context, kind string, id int64, parent *datastore.Key) error
 	CreateNamed(ctx context.Context, name string, parent *datastore.Key, entity Entity) (*datastore.Key, error)
-	GetNamed(ctx context.Context, name string, entity Entity) error
-	DeleteNamed(ctx context.Context, kind string, name string) error
+	GetNamed(ctx context.Context, name string, parent *datastore.Key, entity Entity) error
+	DeleteNamed(ctx context.Context, kind string, name string, parent *datastore.Key) error
 	QGet(ctx context.Context, kind string, property string, value string, entity Entity) (*datastore.Key, error)
 }
 
@@ -51,8 +51,8 @@ func (client Client) Create(ctx context.Context, parent *datastore.Key, entity E
 	return key, nil
 }
 
-func (client Client) Get(ctx context.Context, id int64, entity Entity) error {
-	key := datastore.IDKey(entity.GetKind(), id, nil)
+func (client Client) Get(ctx context.Context, id int64, parent *datastore.Key, entity Entity) error {
+	key := datastore.IDKey(entity.GetKind(), id, parent)
 	err := client.ds.Get(ctx, key, entity)
 	if err != nil {
 		return errors.Wrap(err, "failed to get datastore entity")
@@ -61,8 +61,8 @@ func (client Client) Get(ctx context.Context, id int64, entity Entity) error {
 	return nil
 }
 
-func (client Client) Delete(ctx context.Context, kind string, id int64) error {
-	key := datastore.IDKey(kind, id, nil)
+func (client Client) Delete(ctx context.Context, kind string, id int64, parent *datastore.Key) error {
+	key := datastore.IDKey(kind, id, parent)
 	err := client.ds.Delete(ctx, key)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete datastore entity")
@@ -80,8 +80,8 @@ func (client Client) CreateNamed(ctx context.Context, name string, parent *datas
 	return key, nil
 }
 
-func (client Client) GetNamed(ctx context.Context, name string, entity Entity) error {
-	key := datastore.NameKey(entity.GetKind(), name, nil)
+func (client Client) GetNamed(ctx context.Context, name string, parent *datastore.Key, entity Entity) error {
+	key := datastore.NameKey(entity.GetKind(), name, parent)
 	err := client.ds.Get(ctx, key, entity)
 	if err != nil {
 		return errors.Wrap(err, "failed to get named datastore entity")
@@ -90,8 +90,8 @@ func (client Client) GetNamed(ctx context.Context, name string, entity Entity) e
 	return nil
 }
 
-func (client Client) DeleteNamed(ctx context.Context, kind string, name string) error {
-	key := datastore.NameKey(kind, name, nil)
+func (client Client) DeleteNamed(ctx context.Context, kind string, name string, parent *datastore.Key) error {
+	key := datastore.NameKey(kind, name, parent)
 	err := client.ds.Delete(ctx, key)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete named datastore entity")
