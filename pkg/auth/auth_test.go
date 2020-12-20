@@ -23,7 +23,7 @@ func TestCheckInternal(t *testing.T) {
 
 	for _, test := range tests {
 		if output := checkInternal(test.input); output != test.expected {
-			t.Errorf("test failed: input: %v, wanted: %v, got: %v", test.input, test.expected, output)
+			t.Errorf("test failed; input: %v, wanted: %v, got: %v", test.input, test.expected, output)
 		}
 	}
 }
