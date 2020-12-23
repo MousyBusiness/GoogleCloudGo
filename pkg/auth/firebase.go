@@ -63,11 +63,3 @@ func VerifyToken(c *gin.Context, client *fbauth.Client) (int, string, error) {
 	log.Println("not admin")
 	return http.StatusForbidden, "not admin", errors.New("not admin")
 }
-
-func ExtractClaims(c *gin.Context) (*fbauth.Token, error) {
-	idToken, ok := c.Get(FirebaseContextVal)
-	if !ok {
-		return nil, errors.New("Failed to extract claims")
-	}
-	return idToken.(*fbauth.Token), nil
-}
