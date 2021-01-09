@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	dstore "google.golang.org/api/datastore/v1beta1"
-	"os"
 	"time"
 )
 
-func Export(ctx context.Context, timeout int, bucket string, kinds ...string) ([]byte, error) {
+func Export(ctx context.Context, timeout int, project string, bucket string, kinds ...string) ([]byte, error) {
 	ctxWithDeadline, cancel := context.WithTimeout(ctx, time.Minute*time.Duration(timeout))
 	defer cancel()
 
@@ -21,8 +20,7 @@ func Export(ctx context.Context, timeout int, bucket string, kinds ...string) ([
 		return nil, err
 	}
 
-	pid := os.Getenv("GOOGLE_CLOUD_PROJECT") // environment variable provided by app engine
-	o, err := service.Projects.Export(pid, &dstore.GoogleDatastoreAdminV1beta1ExportEntitiesRequest{
+	o, err := service.Projects.Export(project, &dstore.GoogleDatastoreAdminV1beta1ExportEntitiesRequest{
 		EntityFilter: &dstore.GoogleDatastoreAdminV1beta1EntityFilter{
 			NamespaceIds: []string{},
 			Kinds:        kinds,
