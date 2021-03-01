@@ -23,11 +23,11 @@ type RefreshResponse struct {
 	ProjectID    string `json:"project_id"`
 }
 
-type refreshToken string
-type apiKey string
+type RefreshToken string
+type APIKey string
 
 //https://firebase.google.com/docs/reference/rest/auth
-func RefreshFirebaseToken(token refreshToken, secret apiKey) (RefreshResponse, error) {
+func RefreshFirebaseToken(token RefreshToken, secret APIKey) (RefreshResponse, error) {
 
 	b, err := json.Marshal(struct {
 		RefreshToken string `json:"refresh_token"`
