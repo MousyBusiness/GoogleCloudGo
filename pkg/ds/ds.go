@@ -11,6 +11,7 @@ import (
 
 type DatastoreClient interface {
 	Create(ctx context.Context, parent *datastore.Key, entity Entity) (*datastore.Key, error)
+	Update(ctx context.Context, parent *datastore.Key, id int64,  entity Entity) (*datastore.Key, error)
 	Get(ctx context.Context, id int64, parent *datastore.Key, entity Entity) error
 	Delete(ctx context.Context, kind string, id int64, parent *datastore.Key) error
 	CreateNamed(ctx context.Context, name string, parent *datastore.Key, entity Entity) (*datastore.Key, error)
@@ -44,6 +45,16 @@ func ConnectToDatastore(ctx context.Context) (DatastoreClient, error) {
 
 func (client Client) Create(ctx context.Context, parent *datastore.Key, entity Entity) (*datastore.Key, error) {
 	key := datastore.IncompleteKey(entity.GetKind(), parent)
+	key, err := client.ds.Put(ctx, key, entity.GetValue())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create datastore entity")
+	}
+	return key, nil
+}
+
+func (client Client) Update(ctx context.Context, parent *datastore.Key, id int64,  entity Entity) (*datastore.Key, error) {
+	key := datastore.IDKey(entity.GetKind(), id, parent)
+
 	key, err := client.ds.Put(ctx, key, entity.GetValue())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create datastore entity")
