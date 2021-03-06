@@ -117,6 +117,7 @@ func AuthInternalOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ip := c.ClientIP()
 		if ! checkInternal(ip) {
+			log.Println("rejected IP:", ip)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"code":    http.StatusUnauthorized,
 				"message": "tisk tisk tisk",
