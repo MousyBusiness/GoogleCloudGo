@@ -77,6 +77,9 @@ func GetProjectID() (string, error) {
 
 // internal DNS works within VPC
 func GetInternalDNS() (string, error) {
+	if d := os.Getenv("COMPUTE_INTERNAL_DNS"); d != "" {
+		return d, nil
+	}
 	if os.Getenv("LOCAL_ENV") == "true" {
 		return "localhost", nil
 	}
@@ -104,6 +107,9 @@ func GetInternalDNS() (string, error) {
 }
 
 func GetSubnetMask() (string, error) {
+	if m := os.Getenv("COMPUTE_SUBNET_MASK"); m != "" {
+		return m, nil
+	}
 	if os.Getenv("LOCAL_ENV") == "true" {
 		return "255.255.0.0", nil
 	}
@@ -130,6 +136,9 @@ func GetSubnetMask() (string, error) {
 }
 
 func GetZone() (string, error) {
+	if z := os.Getenv("COMPUTE_ZONE"); z != "" {
+		return z, nil
+	}
 	if os.Getenv("LOCAL_ENV") == "true" {
 		return "europe-west2-c", nil
 	}
@@ -158,6 +167,9 @@ func GetZone() (string, error) {
 
 // gets servers external IP on GCP using metadata endpoint
 func GetExternalIP() (string, error) {
+	if ip := os.Getenv("COMPUTE_EXTERNAL_IP"); ip != "" {
+		return ip, nil
+	}
 	if os.Getenv("LOCAL_ENV") == "true" {
 		return "127.0.0.1", nil
 	}
@@ -184,6 +196,9 @@ func GetExternalIP() (string, error) {
 }
 
 func GetInternalIP() (string, error) {
+	if ip := os.Getenv("COMPUTE_INTERNAL_IP"); ip != "" {
+		return ip, nil
+	}
 	if os.Getenv("LOCAL_ENV") == "true" {
 		return "127.0.0.1", nil
 	}
