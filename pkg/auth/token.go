@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -40,8 +39,6 @@ func RefreshFirebaseToken(token RefreshToken, secret APIKey) (RefreshResponse, e
 		return RefreshResponse{}, err
 	}
 
-	log.Println("sending", string(b))
-
 	resp, err := http.Post(fmt.Sprintf("%s?key=%s", refreshURL, secret), http.DetectContentType(b), bytes.NewReader(b))
 	if err != nil {
 		return RefreshResponse{}, err
@@ -54,8 +51,7 @@ func RefreshFirebaseToken(token RefreshToken, secret APIKey) (RefreshResponse, e
 	}
 
 	if code != 200 {
-		log.Println("Body", string(body))
-		return RefreshResponse{}, errors.New(fmt.Sprintf("status code not 200, code: %d", code))
+		return RefreshResponse{}, errors.New(fmt.Sprintf("status code not 200, code: %d, error: %v", code, string(body)))
 	}
 
 	var r RefreshResponse
