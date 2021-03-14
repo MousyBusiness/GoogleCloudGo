@@ -24,6 +24,5 @@ func GetProjectNumber() (int64, error) {
 		return 0, err
 	}
 
-	log.Printf("Project number for project %s: %d\n", projectID, project.ProjectNumber)
 	return project.ProjectNumber, nil
 }
