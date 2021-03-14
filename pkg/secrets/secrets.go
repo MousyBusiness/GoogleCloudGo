@@ -19,6 +19,9 @@ func GetSecret(secretId string) (string, error) {
 
 	// AppEngine environment variable only exposes projectID and not projectNumber which is required by secrets manager
 	projectNumber, err := proj.GetProjectNumber()
+	if err != nil {
+		return "", err
+	}
 	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
 		Name: fmt.Sprintf("projects/%d/secrets/%s/versions/%d", projectNumber, secretId, 1),
 	}
