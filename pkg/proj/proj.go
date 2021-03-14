@@ -3,7 +3,6 @@ package proj
 import (
 	"context"
 	"google.golang.org/api/cloudresourcemanager/v1"
-	"log"
 	"os"
 )
 
