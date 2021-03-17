@@ -65,7 +65,6 @@ func AuthAPIKey(secretId string) gin.HandlerFunc {
 			return
 		}
 
-		log.Println("no error during check")
 		c.Next()
 	}
 }
