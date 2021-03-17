@@ -56,8 +56,6 @@ func AuthAPIKey(secretId string) gin.HandlerFunc {
 			return
 		}
 
-		log.Println("comparing secret with provided key", secret, key)
-
 		if secret != key {
 			log.Println("key doesnt match!")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
