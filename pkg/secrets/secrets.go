@@ -3,6 +3,7 @@ package secrets
 import (
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/mousybusiness/googlecloudgo/pkg/proj"
 	errs "github.com/pkg/errors"
@@ -30,6 +31,10 @@ func GetSecret(secretId string) (string, error) {
 	result, err := client.AccessSecretVersion(ctx, accessRequest)
 	if err != nil {
 		return "", errs.Wrap(err, "failed to access secret version")
+	}
+
+	if string(result.Payload.Data) == "" {
+		return "", errors.New("secret empty")
 	}
 
 	return string(result.Payload.Data), nil
