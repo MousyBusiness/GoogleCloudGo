@@ -41,11 +41,13 @@ func AuthJWT(client *fbauth.Client) gin.HandlerFunc {
 }
 
 // API key auth middleware
-func AuthAPIKey(secret string) gin.HandlerFunc {
+type Secret string
+
+func AuthAPIKey(secret Secret) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		key := c.Request.Header.Get(apiKeyHeader)
 
-		if secret != key {
+		if string(secret) != key {
 			log.Println("key doesnt match!")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"code":    http.StatusUnauthorized,
