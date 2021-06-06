@@ -10,8 +10,10 @@ import (
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
+type Secret string
+
 // get secret from Google Cloud Secret Manager
-func GetSecret(secretId string) (string, error) {
+func GetSecret(secretId string) (Secret, error) {
 	ctx := context.Background()
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
@@ -37,5 +39,5 @@ func GetSecret(secretId string) (string, error) {
 		return "", errors.New("secret empty")
 	}
 
-	return string(result.Payload.Data), nil
+	return Secret(result.Payload.Data), nil
 }

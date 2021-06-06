@@ -3,6 +3,7 @@ package auth
 import (
 	fbauth "firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
+	"github.com/mousybusiness/googlecloudgo/pkg/secrets"
 	"log"
 	"net/http"
 	"regexp"
@@ -41,9 +42,8 @@ func AuthJWT(client *fbauth.Client) gin.HandlerFunc {
 }
 
 // API key auth middleware
-type Secret string
 
-func AuthAPIKey(secret Secret) gin.HandlerFunc {
+func AuthAPIKey(secret secrets.Secret) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		key := c.Request.Header.Get(apiKeyHeader)
 
