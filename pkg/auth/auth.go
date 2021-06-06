@@ -3,7 +3,6 @@ package auth
 import (
 	fbauth "firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
-	"github.com/mousybusiness/googlecloudgo/pkg/secrets"
 	"log"
 	"net/http"
 	"regexp"
@@ -42,19 +41,9 @@ func AuthJWT(client *fbauth.Client) gin.HandlerFunc {
 }
 
 // API key auth middleware
-func AuthAPIKey(secretId string) gin.HandlerFunc {
+func AuthAPIKey(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		key := c.Request.Header.Get(apiKeyHeader)
-
-		secret, err := secrets.GetSecret(secretId)
-		if err != nil {
-			log.Println("failed to get secret")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"code":    http.StatusUnauthorized,
-				"message": http.StatusText(http.StatusUnauthorized),
-			})
-			return
-		}
 
 		if secret != key {
 			log.Println("key doesnt match!")
@@ -92,7 +81,7 @@ func checkInternal(ip string) bool {
 		return true
 	}
 
-	if  strings.HasPrefix(ip, "172.") {
+	if strings.HasPrefix(ip, "172.") {
 		exp := regexp.MustCompile(`\d{1,3}\.(\d{1,3})\.\d{1,3}\.\d{1,3}`)
 		v := exp.ReplaceAllString(ip, `$1`)
 		atoi, err := strconv.Atoi(v)
@@ -113,7 +102,7 @@ func checkInternal(ip string) bool {
 func AuthInternalOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ip := c.ClientIP()
-		if ! checkInternal(ip) {
+		if !checkInternal(ip) {
 			log.Println("rejected IP:", ip)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"code":    http.StatusUnauthorized,
