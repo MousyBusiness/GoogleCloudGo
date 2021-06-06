@@ -3,7 +3,6 @@ package auth
 import (
 	fbauth "firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
-	"github.com/mousybusiness/googlecloudgo/pkg/secrets"
 	"log"
 	"net/http"
 	"regexp"
@@ -43,12 +42,12 @@ func AuthJWT(client *fbauth.Client) gin.HandlerFunc {
 
 // API key auth middleware
 
-func AuthAPIKey(secret secrets.Secret) gin.HandlerFunc {
+func AuthAPIKey(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		key := c.Request.Header.Get(apiKeyHeader)
 
-		if string(secret) != key {
-			log.Println("key doesnt match!")
+		if key == "" || secret != key {
+			log.Println("api key mismatch!")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"code":    http.StatusUnauthorized,
 				"message": http.StatusText(http.StatusUnauthorized),
