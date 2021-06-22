@@ -14,6 +14,7 @@ import (
 )
 
 type DatastoreClient interface {
+	Client() *datastore.Client
 	Create(ctx context.Context, parent *datastore.Key, entity Entity) (*datastore.Key, error)
 	Update(ctx context.Context, parent *datastore.Key, id int64, entity Entity) (*datastore.Key, error)
 	Get(ctx context.Context, id int64, parent *datastore.Key, entity Entity) error
@@ -48,6 +49,10 @@ func ConnectToDatastore(ctx context.Context) (DatastoreClient, error) {
 
 	log.Println("datastore client created")
 	return Client{ds: c}, nil
+}
+
+func (client Client) Client() *datastore.Client {
+	return client.ds
 }
 
 // Create will create a single Entity and return a generated key
