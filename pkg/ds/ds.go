@@ -78,7 +78,7 @@ func (client Client) Update(ctx context.Context, parent *datastore.Key, id int64
 
 // Get will get a single Entity using its generated key and parent (if exists)
 func (client Client) Get(ctx context.Context, id int64, parent *datastore.Key, entity Entity) error {
-	if entity.GetValue() == nil {
+	if entity.GetValue() == nil || reflect.ValueOf(entity.GetValue()).Kind() == reflect.Ptr && reflect.ValueOf(entity.GetValue()).IsNil() {
 		return errors.New("entity.GetValue cannot return nil")
 	}
 	key := datastore.IDKey(entity.GetKind(), id, parent)
@@ -113,7 +113,7 @@ func (client Client) CreateNamed(ctx context.Context, name string, parent *datas
 
 // GetNamed will get a single Entity using its name key and parent (if exists)
 func (client Client) GetNamed(ctx context.Context, name string, parent *datastore.Key, entity Entity) error {
-	if entity.GetValue() == nil {
+	if entity.GetValue() == nil || reflect.ValueOf(entity.GetValue()).Kind() == reflect.Ptr && reflect.ValueOf(entity.GetValue()).IsNil() {
 		return errors.New("entity.GetValue cannot return nil")
 	}
 	key := datastore.NameKey(entity.GetKind(), name, parent)
