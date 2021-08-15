@@ -1,10 +1,12 @@
 package compute
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/mousybusiness/go-web/web"
 	errs "github.com/pkg/errors"
+	comp "google.golang.org/api/compute/v1"
 	"os"
 	"regexp"
 	"time"
@@ -228,4 +230,36 @@ func GetInternalIP() (string, error) {
 func getMetadata(url string) (string, error) {
 	_, b, err := web.Get(url, time.Second*2, web.KV{"Metadata-Flavor", "Google"})
 	return string(b), err
+}
+
+// ListAllServers returns all compute instances in all zones
+// for the project set with GOOGLE_CLOUD_PROJET
+func ListAllServers() ([]*comp.Instance, error) {
+	project := os.Getenv("GOOGLE_CLOUD_PROJECT")
+	if project == "" {
+		return nil, errors.New("require GOOGLE_CLOUD_PROJECT to be set")
+	}
+
+	ctx := context.Background()
+	computeService, err := comp.NewService(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	zones, err := computeService.Zones.List(project).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	var allInstances []*comp.Instance
+	for _, z := range zones.Items {
+		instances, err := computeService.Instances.List(project, z.Name).Do()
+		if err != nil {
+			return nil, err
+		}
+
+		allInstances = append(allInstances, instances.Items...)
+	}
+
+	return allInstances, nil
 }
