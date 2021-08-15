@@ -9,6 +9,8 @@ import (
 	"google.golang.org/api/compute/v1"
 	"os"
 	"regexp"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -234,7 +236,7 @@ func getMetadata(url string) (string, error) {
 
 // ListAllInstances returns all compute instances in all zones
 // for the project set with GOOGLE_CLOUD_PROJET
-func ListAllInstances() ([]*compute.Instance, error) {
+func ListAllExternalIPs(prefix string) ([]string, error) {
 	project := os.Getenv("GOOGLE_CLOUD_PROJECT")
 	if project == "" {
 		return nil, errors.New("require GOOGLE_CLOUD_PROJECT to be set")
@@ -251,15 +253,50 @@ func ListAllInstances() ([]*compute.Instance, error) {
 		return nil, err
 	}
 
-	var allInstances []*compute.Instance
-	for _, z := range zones.Items {
-		instances, err := computeService.Instances.List(project, z.Name).Do()
-		if err != nil {
-			return nil, err
-		}
+	wg := sync.WaitGroup{}
+	wg.Add(len(zones.Items))
+	ch := make(chan []*compute.Instance)
 
-		allInstances = append(allInstances, instances.Items...)
+	var allInstances []*compute.Instance
+	// fetch
+	for _, z := range zones.Items {
+		go func(zone *compute.Zone, outCh chan []*compute.Instance) {
+			defer wg.Done()
+			instances, err := computeService.Instances.List(project, z.Name).Do()
+			if err == nil {
+				outCh <- instances.Items
+			}
+		}(z, ch)
 	}
 
-	return allInstances, nil
+	// aggregate
+	go func() {
+		for {
+			select {
+			case v, ok := <-ch:
+				if !ok {
+					return
+				}
+				allInstances = append(allInstances, v...)
+			}
+		}
+	}()
+
+	wg.Wait()
+
+	var externalIPs []string
+	for _, v := range allInstances {
+		if strings.HasPrefix(v.Name, prefix) {
+			for _, vv := range v.NetworkInterfaces {
+				if len(vv.AccessConfigs) > 0 {
+					if vv.AccessConfigs[0].Type == "ONE_TO_ONE_NAT" {
+						externalIPs = append(externalIPs, vv.AccessConfigs[0].NatIP)
+					}
+				}
+			}
+		}
+
+	}
+
+	return externalIPs, nil
 }
