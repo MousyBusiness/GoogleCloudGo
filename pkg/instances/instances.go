@@ -4,14 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/martian/log"
 	"github.com/mousybusiness/go-web/web"
 	errs "github.com/pkg/errors"
 	"google.golang.org/api/compute/v1"
 	"os"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -243,72 +241,36 @@ func ListAllExternalIPs(prefix string) ([]string, error) {
 		return nil, errors.New("require GOOGLE_CLOUD_PROJECT to be set")
 	}
 
+	fmt.Println("using project:", project)
+
 	ctx := context.Background()
 	computeService, err := compute.NewService(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	zones, err := computeService.Zones.List(project).Do()
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println(fmt.Sprintf("DEBUG: zones: %v", len(zones.Items)))
-
-	wg := sync.WaitGroup{}
-	wg.Add(len(zones.Items))
-	ch := make(chan []*compute.Instance)
-
-	var allInstances []*compute.Instance
-	// fetch
-	for _, z := range zones.Items {
-		fmt.Println(fmt.Sprintf("DEBUG: zone: %v", z.Name))
-
-		go func(zone *compute.Zone, outCh chan []*compute.Instance) {
-			defer wg.Done()
-
-			instances, err := computeService.Instances.List(project, z.Name).Do()
-			if err == nil {
-				fmt.Println(fmt.Sprintf("DEBUG: fetched instances, count: %v", len(instances.Items)))
-				outCh <- instances.Items
-			}else{
-				log.Errorf("error getting instances %v", err)
-			}
-		}(z, ch)
-	}
-
-	// aggregate
-	go func() {
-		for {
-			select {
-			case v, ok := <-ch:
-				if !ok {
-					return
-				}
-				allInstances = append(allInstances, v...)
-			}
-		}
-	}()
-
-	wg.Wait()
+	all, err := computeService.Instances.AggregatedList(project).Do()
 
 	var externalIPs []string
-	for _, v := range allInstances {
-		if strings.HasPrefix(v.Name, prefix) {
-			for _, vv := range v.NetworkInterfaces {
-				if len(vv.AccessConfigs) > 0 {
-					if vv.AccessConfigs[0].Type == "ONE_TO_ONE_NAT" {
-						externalIPs = append(externalIPs, vv.AccessConfigs[0].NatIP)
-					}else{
-						fmt.Println(fmt.Sprintf("DEBUG: dropped network type: %v", vv.AccessConfigs[0].Type))
+	for z, zv := range all.Items {
+		fmt.Println(fmt.Sprintf("DEBUG: zone: %v, count: %v", z, len(zv.Instances)))
+
+		for _, v := range zv.Instances {
+			if strings.HasPrefix(v.Name, prefix) {
+				for _, vv := range v.NetworkInterfaces {
+					if len(vv.AccessConfigs) > 0 {
+						if vv.AccessConfigs[0].Type == "ONE_TO_ONE_NAT" {
+							externalIPs = append(externalIPs, vv.AccessConfigs[0].NatIP)
+						} else {
+							fmt.Println(fmt.Sprintf("DEBUG: dropped network type: %v", vv.AccessConfigs[0].Type))
+						}
+					} else {
+						fmt.Println(fmt.Sprintf("DEBUG: no network interfacees"))
 					}
-				}else{
-					fmt.Println(fmt.Sprintf("DEBUG: no network interfacees"))
 				}
+			} else {
+				fmt.Println(fmt.Sprintf("DEBUG: no prefix match, filtering %v", v.Name))
 			}
-		}else{
-			fmt.Println(fmt.Sprintf("DEBUG: filtering %v", v.Name))
 		}
 
 	}
