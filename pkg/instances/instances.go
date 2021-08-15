@@ -233,15 +233,13 @@ func getMetadata(url string) (string, error) {
 	return string(b), err
 }
 
-// ListAllInstances returns all compute instances in all zones
+// ListAllExternalIPs returns all compute instances in all zones
 // for the project set with GOOGLE_CLOUD_PROJET
 func ListAllExternalIPs(prefix string) ([]string, error) {
 	project := os.Getenv("GOOGLE_CLOUD_PROJECT")
 	if project == "" {
 		return nil, errors.New("require GOOGLE_CLOUD_PROJECT to be set")
 	}
-
-	fmt.Println("using project:", project)
 
 	ctx := context.Background()
 	computeService, err := compute.NewService(ctx)
@@ -253,23 +251,15 @@ func ListAllExternalIPs(prefix string) ([]string, error) {
 
 	var externalIPs []string
 	for z, zv := range all.Items {
-		fmt.Println(fmt.Sprintf("DEBUG: zone: %v, count: %v", z, len(zv.Instances)))
-
 		for _, v := range zv.Instances {
 			if strings.HasPrefix(v.Name, prefix) {
 				for _, vv := range v.NetworkInterfaces {
 					if len(vv.AccessConfigs) > 0 {
 						if vv.AccessConfigs[0].Type == "ONE_TO_ONE_NAT" {
 							externalIPs = append(externalIPs, vv.AccessConfigs[0].NatIP)
-						} else {
-							fmt.Println(fmt.Sprintf("DEBUG: dropped network type: %v", vv.AccessConfigs[0].Type))
 						}
-					} else {
-						fmt.Println(fmt.Sprintf("DEBUG: no network interfacees"))
 					}
 				}
-			} else {
-				fmt.Println(fmt.Sprintf("DEBUG: no prefix match, filtering %v", v.Name))
 			}
 		}
 
