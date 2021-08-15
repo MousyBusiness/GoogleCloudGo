@@ -1,4 +1,4 @@
-package compute
+package instances
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/mousybusiness/go-web/web"
 	errs "github.com/pkg/errors"
-	comp "google.golang.org/api/compute/v1"
+	"google.golang.org/api/compute/v1"
 	"os"
 	"regexp"
 	"time"
@@ -232,16 +232,16 @@ func getMetadata(url string) (string, error) {
 	return string(b), err
 }
 
-// ListAllServers returns all compute instances in all zones
+// ListAllInstances returns all compute instances in all zones
 // for the project set with GOOGLE_CLOUD_PROJET
-func ListAllServers() ([]*comp.Instance, error) {
+func ListAllInstances() ([]*compute.Instance, error) {
 	project := os.Getenv("GOOGLE_CLOUD_PROJECT")
 	if project == "" {
 		return nil, errors.New("require GOOGLE_CLOUD_PROJECT to be set")
 	}
 
 	ctx := context.Background()
-	computeService, err := comp.NewService(ctx)
+	computeService, err := compute.NewService(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func ListAllServers() ([]*comp.Instance, error) {
 		return nil, err
 	}
 
-	var allInstances []*comp.Instance
+	var allInstances []*compute.Instance
 	for _, z := range zones.Items {
 		instances, err := computeService.Instances.List(project, z.Name).Do()
 		if err != nil {

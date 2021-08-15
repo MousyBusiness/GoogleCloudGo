@@ -1,4 +1,4 @@
-package compute
+package instances
 
 import (
 	"github.com/mousybusiness/go-web/web"
