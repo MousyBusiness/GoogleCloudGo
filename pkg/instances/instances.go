@@ -250,7 +250,7 @@ func ListAllExternalIPs(prefix string) ([]string, error) {
 	all, err := computeService.Instances.AggregatedList(project).Do()
 
 	var externalIPs []string
-	for z, zv := range all.Items {
+	for _, zv := range all.Items {
 		for _, v := range zv.Instances {
 			if strings.HasPrefix(v.Name, prefix) {
 				for _, vv := range v.NetworkInterfaces {
