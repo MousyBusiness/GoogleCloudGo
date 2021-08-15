@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/martian/log"
 	"github.com/mousybusiness/go-web/web"
 	errs "github.com/pkg/errors"
 	"google.golang.org/api/compute/v1"
@@ -253,6 +254,8 @@ func ListAllExternalIPs(prefix string) ([]string, error) {
 		return nil, err
 	}
 
+	fmt.Println(fmt.Sprintf("DEBUG: zones: %v", len(zones.Items)))
+
 	wg := sync.WaitGroup{}
 	wg.Add(len(zones.Items))
 	ch := make(chan []*compute.Instance)
@@ -260,11 +263,17 @@ func ListAllExternalIPs(prefix string) ([]string, error) {
 	var allInstances []*compute.Instance
 	// fetch
 	for _, z := range zones.Items {
+		fmt.Println(fmt.Sprintf("DEBUG: zone: %v", z.Name))
+
 		go func(zone *compute.Zone, outCh chan []*compute.Instance) {
 			defer wg.Done()
+
 			instances, err := computeService.Instances.List(project, z.Name).Do()
 			if err == nil {
+				fmt.Println(fmt.Sprintf("DEBUG: fetched instances, count: %v", len(instances.Items)))
 				outCh <- instances.Items
+			}else{
+				log.Errorf("error getting instances %v", err)
 			}
 		}(z, ch)
 	}
@@ -291,9 +300,15 @@ func ListAllExternalIPs(prefix string) ([]string, error) {
 				if len(vv.AccessConfigs) > 0 {
 					if vv.AccessConfigs[0].Type == "ONE_TO_ONE_NAT" {
 						externalIPs = append(externalIPs, vv.AccessConfigs[0].NatIP)
+					}else{
+						fmt.Println(fmt.Sprintf("DEBUG: dropped network type: %v", vv.AccessConfigs[0].Type))
 					}
+				}else{
+					fmt.Println(fmt.Sprintf("DEBUG: no network interfacees"))
 				}
 			}
+		}else{
+			fmt.Println(fmt.Sprintf("DEBUG: filtering %v", v.Name))
 		}
 
 	}
