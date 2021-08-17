@@ -140,7 +140,7 @@ func (client Client) DeleteNamed(ctx context.Context, kind string, name string, 
 func (client Client) QGet(ctx context.Context, kind string, property string, value string, entity Entity) (*datastore.Key, error) {
 	query := datastore.NewQuery(kind).Filter(fmt.Sprintf("%s =", property), value)
 	it := client.ds.Run(ctx, query)
-	key, err := it.Next(entity)
+	key, err := it.Next(entity.GetValue())
 	if err != nil {
 		return nil, err
 	}
